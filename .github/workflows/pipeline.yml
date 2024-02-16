@@ -34,6 +34,15 @@ jobs:
           command: npm run test:e2e
           start: npm run start-prod
           wait-on: http://localhost:5000
+      - name: Send discord failure notification
+        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+        if: ${{ failure() }}
+        with:
+          severity: error
+          description: description.
+          footer: 'Severity: error'
+          text: Either build or test job has failed
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   deploy:
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ', '), '#skip') }}
@@ -54,3 +63,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BUMP: patch
+      - name: Send discord success notification
+        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+        if: ${{ success() }}
+        with:
+          severity: info
+          description: description.
+          footer: 'Severity: info'
+          text: A new version of Pokedex deployed.
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
